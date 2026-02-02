@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Kalkulator Kosztu roboczogodziny</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+    section {
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    .t68 {
+      background-color: #fff;
+      padding: 40px 0;
+    }
+    .t279 {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .t69 {
+      flex: 1;
+      max-width: 1280px;
+    }
+    .t73 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+    .dh-btn-primary {
+      background-color: #8e42ff;
+      color: #fff;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      margin-top: 15px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .dh-btn-primary:hover {
+      background-color: #363636;
+    }
+    .calculator-form {
+      background-color: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .calculator-form .form-group {
+      margin-bottom: 20px;
+    }
+    .calculator-form label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    .calculator-form input, 
+    .calculator-form select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    #componentsChartSection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+      width: 100%;
+    }
+    #componentsList {
+      width: 100%;
+    }
+    #componentsList p {
+      margin: 5px 0;
+    }
+    #componentsList span.color-box {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+    }
+    #chartWrapper {
+      width: 130px;
+      height: 130px;
+      margin-top: 20px;
+      flex-shrink: 0;
+    }
+    #chartWrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    /* Lead magnet styles */
+    .lead-form-wrapper {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px;
+      border-radius: 12px;
+      margin: 30px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .lead-form-wrapper h3 {
+      color: #fff;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+    .lead-form-wrapper p {
+      color: #fff;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+    .lead-form {
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .lead-form .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    .lead-form label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-weight: 600;
+    }
+    .lead-form input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    .lead-form input:focus {
+      outline: none;
+      border-color: #8e42ff;
+    }
+    .lead-form .checkbox-group {
+      text-align: left;
+      margin: 15px 0;
+    }
+    .lead-form .checkbox-group label {
+      font-weight: normal;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+    }
+    .lead-form .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+      margin-top: 3px;
+    }
+    .preview-result {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #8e42ff;
+    }
+    .preview-result h3 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .preview-highlight {
+      font-size: 2rem;
+      color: #8e42ff;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .hidden {
+      display: none;
+    }
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border: 1px solid #c3e6cb;
+    }
+  </style>
+</head>
+<body>
+  <section class="t68">
+    <div class="container t279">
+      <div class="t69">
+        <h2 class="t73">Kalkulator Kosztu roboczogodziny</h2>
+        <div class="calculator-form">
+          <form id="calculatorForm">
+            <div class="form-group">
+              <label for="taxMethod">Wybierz formę opodatkowania:</label>
+              <select id="taxMethod" name="taxMethod" onchange="toggleFields()">
+                <option value="liniowy">Podatek liniowy</option>
+                <option value="ryczalt">Ryczałt od przychodów ewidencjonowanych</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="fixedCosts">Całkowite koszty firmy (zł/miesiąc):</label>
+              <input type="number" id="fixedCosts" name="fixedCosts" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="numOperationalEmployees">Liczba pracowników (bezpośrednio wykonujących usługi):</label>
+              <input type="number" id="numOperationalEmployees" name="numOperationalEmployees" step="1">
+            </div>
+            <div class="form-group">
+              <label for="avgHours">Średnia liczba r‑g na pracownika w miesiącu:</label>
+              <input type="number" id="avgHours" name="avgHours" step="0.01">
+            </div>
+            <div id="marginSection" class="form-group">
+              <label for="marginPct">Narzut firmy (%)</label>
+              <input type="number" id="marginPct" name="marginPct" step="0.01">
+            </div>
+            <div id="marginRycSection" class="form-group hidden" style="display:none;">
+              <label for="marginRyc">Narzut (%):</label>
+              <input type="number" id="marginRyc" name="marginRyc" step="0.01">
+            </div>
+            <div id="rycInput" class="hidden" style="display:none;">
+              <div class="form-group">
+                <label for="rycRate">Stawka ryczałtu:</label>
+                <select id="rycRate" name="rycRate">
+                  <option value="0.17">17%</option>
+                  <option value="0.15">15%</option>
+                  <option value="0.085">8,5%</option>
+                  <option value="0.055">5,5%</option>
+                  <option value="0.03">3%</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="rycSalary">Przeciętne wynagrodzenie (na potrzebe obliczenia składki zdrowotnej):</label>
+                <input type="number" id="rycSalary" name="rycSalary" step="0.01" value="8482.47">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="vatRate">Stawka VAT (%):</label>
+              <input type="number" id="vatRate" name="vatRate" step="0.01">
+            </div>
+            <button type="button" class="dh-btn-primary" onclick="calculatePreview()">Oblicz</button>
+          </form>
+        </div>
+        
+        <div id="previewResults" class="hidden"></div>
+        <div id="leadForm" class="hidden"></div>
+        <div id="fullResults" class="hidden"></div>
+        <div id="mergedSection"></div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    var pieChart;
+    var calculationData = {};
+
+    // 🔧 KONFIGURACJA - WKLEJ TUTAJ URL WEBHOOK Z ZAPIER
+    var ZAPIER_WEBHOOK_URL = 'WKLEJ_TUTAJ_WEBHOOK_URL_Z_ZAPIER';
+    // Przykład: 'https://hooks.zapier.com/hooks/catch/1234567/abcdefg/'
+
+    function toggleFields() {
+      var taxMethod = document.getElementById('taxMethod').value;
+      if (taxMethod === "liniowy") {
+        document.getElementById('marginSection').style.display = "block";
+        document.getElementById('marginRycSection').style.display = "none";
+        document.getElementById('rycInput').style.display = "none";
+      } else if (taxMethod === "ryczalt") {
+        document.getElementById('marginSection').style.display = "none";
+        document.getElementById('marginRycSection').style.display = "block";
+        document.getElementById('rycInput').style.display = "block";
+      }
+    }
+
+    function calculatePreview() {
+      var taxMethod = document.getElementById('taxMethod').value;
+      var fixedCosts = parseFloat(document.getElementById('fixedCosts').value) || 0;
+      var numOperationalEmployees = parseFloat(document.getElementById('numOperationalEmployees').value) || 0;
+      var avgHours = parseFloat(document.getElementById('avgHours').value) || 0;
+      var vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+      
+      var totalRG = numOperationalEmployees * avgHours;
+      if(totalRG === 0) {
+        alert("Liczba pracowników operacyjnych lub średnia liczba roboczogodzin nie może być zerowa.");
+        return;
+      }
+      
+      var baseRGCost = fixedCosts / totalRG;
+      var tax_total = 0;
+      var healthInsurance_total = 0;
+      var revenuePerRG = 0;
+      var profitPerRG = 0;
+      var totalRevenue = 0;
+      
+      if(taxMethod === "liniowy") {
+        var marginPct = parseFloat(document.getElementById('marginPct').value) || 0;
+        revenuePerRG = baseRGCost * (1 + marginPct/100);
+        totalRevenue = fixedCosts * (1 + marginPct/100);
+        var taxableIncome = fixedCosts * (marginPct/100);
+        tax_total = 0.19 * taxableIncome;
+        healthInsurance_total = Math.max(0.049 * taxableIncome, 314.96);
+      } else if(taxMethod === "ryczalt") {
+        var marginRyc = parseFloat(document.getElementById('marginRyc').value) || 0;
+        totalRevenue = fixedCosts * (1 + marginRyc/100);
+        revenuePerRG = totalRevenue / totalRG;
+        var rycRate = parseFloat(document.getElementById('rycRate').value) || 0;
+        var rycSalary = parseFloat(document.getElementById('rycSalary').value) || 8482.47;
+        tax_total = rycRate * totalRevenue;
+        if(totalRevenue <= 60000) {
+          healthInsurance_total = 0.09 * rycSalary;
+        } else if(totalRevenue <= 300000) {
+          healthInsurance_total = 0.15 * rycSalary;
+        } else {
+          healthInsurance_total = 1.80 * rycSalary;
+        }
+      }
+      
+      var taxPerRG = tax_total / totalRG;
+      var healthInsurancePerRG = healthInsurance_total / totalRG;
+      profitPerRG = revenuePerRG - baseRGCost - (taxPerRG + healthInsurancePerRG);
+      var grossRGCost = revenuePerRG * (1 + vatRate/100);
+      var vatValue = grossRGCost - revenuePerRG;
+      var profitability = revenuePerRG ? (profitPerRG / revenuePerRG) * 100 : 0;
+      
+      calculationData = {
+        baseRGCost, revenuePerRG, grossRGCost, taxPerRG, 
+        healthInsurancePerRG, vatValue, profitPerRG, profitability
+      };
+      
+      showPreview(grossRGCost, profitPerRG);
+      showLeadForm();
+      document.getElementById('fullResults').classList.add('hidden');
+      document.getElementById('mergedSection').innerHTML = '';
+      sendHeightToParent();
+    }
+
+    function showPreview(grossCost, profit) {
+      var previewHTML = `
+        <div class="preview-result">
+          <h3>✨ Twój wstępny wynik:</h3>
+          <p><strong>Koszt roboczogodziny brutto (z VAT):</strong></p>
+          <div class="preview-highlight">${grossCost.toFixed(2)} zł</div>
+          <p style="margin-top: 15px; color: #666;">
+            <strong>👇 Chcesz poznać szczegóły?</strong><br>
+            Zobacz dokładny rozkład kosztów, rentowność i ile zostaje Ci z każdej godziny na czysto!
+          </p>
+        </div>
+      `;
+      
+      document.getElementById('previewResults').innerHTML = previewHTML;
+      document.getElementById('previewResults').classList.remove('hidden');
+    }
+
+    function showLeadForm() {
+      var formHTML = `
+        <div class="lead-form-wrapper">
+          <h3>🎁 Otrzymaj pełny raport za darmo!</h3>
+          <p>Podaj swoje dane, a wyślemy Ci szczegółową analizę z wizualizacją kosztów</p>
+          <div class="lead-form">
+            <form id="emailForm" onsubmit="submitLeadForm(event)">
+              <div class="form-group">
+                <label for="userName">Imię:</label>
+                <input type="text" id="userName" name="userName" required>
+              </div>
+              <div class="form-group">
+                <label for="userEmail">Email:</label>
+                <input type="email" id="userEmail" name="userEmail" required>
+              </div>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" name="consent" required>
+                  Zgadzam się na przetwarzanie danych osobowych i otrzymywanie informacji handlowych zgodnie z <a href="https://naprawimyfirme.pl/polityka-prywatnosci" target="_blank">polityką prywatności</a>
+                </label>
+              </div>
+              <button type="submit" class="dh-btn-primary" style="width: 100%;">
+                📊 Pokaż mi pełny raport
+              </button>
+            </form>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('leadForm').innerHTML = formHTML;
+      document.getElementById('leadForm').classList.remove('hidden');
+    }
+
+    function submitLeadForm(event) {
+      event.preventDefault();
+      
+      var userName = document.getElementById('userName').value;
+      var userEmail = document.getElementById('userEmail').value;
+      
+      // Wyślij do Zapier
+      sendToZapier(userName, userEmail, calculationData);
+      
+      // Ukryj formularz lead
+      document.getElementById('leadForm').classList.add('hidden');
+      
+      // Pokaż komunikat sukcesu
+      showSuccessMessage(userName);
+      
+      // Pokaż pełne wyniki
+      showFullResults();
+      
+      sendHeightToParent();
+    }
+
+    function sendToZapier(name, email, data) {
+      // Przygotuj dane do wysłania
+      var formData = {
+        name: name,
+        email: email,
+        timestamp: new Date().toISOString(),
+        grossCost: data.grossRGCost.toFixed(2),
+        profit: data.profitPerRG.toFixed(2),
+        profitability: data.profitability.toFixed(2),
+        baseCost: data.baseRGCost.toFixed(2),
+        tax: data.taxPerRG.toFixed(2),
+        health: data.healthInsurancePerRG.toFixed(2),
+        vat: data.vatValue.toFixed(2)
+      };
+      
+      // Wyślij do Zapier
+      if (ZAPIER_WEBHOOK_URL && ZAPIER_WEBHOOK_URL !== 'WKLEJ_TUTAJ_WEBHOOK_URL_Z_ZAPIER') {
+        fetch(ZAPIER_WEBHOOK_URL, {
+          method: 'POST',
+          body: JSON.stringify(formData),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          console.log('✅ Dane wysłane do Zapier');
+          return response.json();
+        })
+        .then(data => console.log('Odpowiedź z Zapier:', data))
+        .catch(error => console.error('❌ Błąd wysyłki:', error));
+      } else {
+        console.warn('⚠️ ZAPIER_WEBHOOK_URL nie został skonfigurowany!');
+      }
+    }
+
+    function showSuccessMessage(userName) {
+      var messageHTML = `
+        <div class="success-message">
+          <strong>✅ Dziękujemy ${userName}!</strong><br>
+          Twój szczegółowy raport znajdziesz poniżej. Na Twój email wysłaliśmy również kopię do pobrania.
+        </div>
+      `;
+      
+      document.getElementById('fullResults').innerHTML = messageHTML;
+      document.getElementById('fullResults').classList.remove('hidden');
+    }
+
+    function showFullResults() {
+      var data = calculationData;
+      
+      var firmHeader = `<h2>Wynik firmy</h2>`;
+      
+      var wynikHTML = `
+        <h3>🔧 Koszt roboczogodziny</h3>
+        <p><strong>Koszt roboczogodziny dla firmy (przed narzutem):</strong> ${data.baseRGCost.toFixed(2)} zł</p>
+        <p><strong>Koszt roboczogodziny netto (po narzucie):</strong> ${data.revenuePerRG.toFixed(2)} zł</p>
+        <p><strong>Koszt roboczogodziny brutto (z VAT):</strong> ${data.grossRGCost.toFixed(2)} zł</p>
+      `;
+      
+      var skladnikiHTML = `
+        <h3>📊 Składniki kosztów roboczogodziny</h3>
+        <div id="componentsChartSection">
+          <div id="componentsList">
+            <p><span class="color-box" style="background-color:#FF6384;"></span><strong>Koszty działalności:</strong> ${data.baseRGCost.toFixed(2)} zł</p>
+            <p><span class="color-box" style="background-color:#36A2EB;"></span><strong>Podatek dochodowy:</strong> ${data.taxPerRG.toFixed(2)} zł</p>
+            <p><span class="color-box" style="background-color:#FFCE56;"></span><strong>Składka zdrowotna:</strong> ${data.healthInsurancePerRG.toFixed(2)} zł</p>
+            <p><span class="color-box" style="background-color:#4BC0C0;"></span><strong>VAT:</strong> ${data.vatValue.toFixed(2)} zł</p>
+            <p><span class="color-box" style="background-color:#9966FF;"></span><strong>Zysk:</strong> ${data.profitPerRG.toFixed(2)} zł</p>
+          </div>
+          <div id="chartWrapper">
+            <canvas id="pieChart" width="130" height="130"></canvas>
+          </div>
+        </div>
+      `;
+      
+      var podsumowanieHTML = `
+        <h3>💰 Podsumowanie roboczogodziny</h3>
+        <p><strong>Tyle zostaje z każdej godziny na czysto 👉:</strong> ${data.profitPerRG.toFixed(2)} zł</p>
+        <p><strong>Taka jest rentwność Twojej firmy 👉:</strong> ${data.profitability.toFixed(2)}%</p>
+      `;
+      
+      document.getElementById("mergedSection").innerHTML = firmHeader + wynikHTML + skladnikiHTML + podsumowanieHTML;
+      
+      if(pieChart) {
+        pieChart.destroy();
+        pieChart = null;
+      }
+      
+      var pieData = [
+        data.baseRGCost,
+        data.taxPerRG,
+        data.healthInsurancePerRG,
+        data.vatValue,
+        data.profitPerRG
+      ];
+      var pieLabels = ["Koszty działalności", "Podatek dochodowy", "Składka zdrowotna", "VAT", "Zysk"];
+      var pieColors = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"];
+      
+      var ctx = document.getElementById('pieChart').getContext('2d');
+      pieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: pieLabels,
+          datasets: [{
+            data: pieData,
+            backgroundColor: pieColors
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function sendHeightToParent() {
+      const height = document.body.scrollHeight;
+      window.parent.postMessage({ iframeHeight: height }, '*');
+    }
+
+    window.addEventListener('load', sendHeightToParent);
+    window.addEventListener('resize', sendHeightToParent);
+    
+    document.addEventListener('click', function() {
+      setTimeout(sendHeightToParent, 300);
+    });
+    
+    toggleFields();
+  </script>
+</body>
+</html>
